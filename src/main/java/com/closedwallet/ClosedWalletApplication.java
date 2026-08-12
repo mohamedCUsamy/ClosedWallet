@@ -10,4 +10,5 @@ public class ClosedWalletApplication {
 		SpringApplication.run(ClosedWalletApplication.class, args);
 	}
 
+
 }
