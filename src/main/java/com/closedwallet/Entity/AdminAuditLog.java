@@ -1,6 +1,9 @@
 package com.closedwallet.Entity;
 
 import java.time.LocalDateTime;
+
+import com.closedwallet.enums.AdminAction;
+
 import jakarta.persistence.*;
 @Entity
 public class AdminAuditLog {

@@ -1,5 +1,7 @@
 package com.closedwallet.Entity;
 
+import com.closedwallet.enums.Role;
+import com.closedwallet.enums.KycStatus;
 import jakarta.persistence.*;
 
 
@@ -18,7 +20,7 @@ public class User {
     private String name;
     private String password;
     private String email;
-    private String phone;
+    private String phoneNumber;
     @Enumerated(EnumType.STRING)
     private Role role;
     @Enumerated(EnumType.STRING)
@@ -78,11 +80,11 @@ public class User {
     }
 
     public String getPhone() {
-        return phone;
+        return phoneNumber;
     }
 
-    public void setPhone(String phone) {
-        this.phone = phone;
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
     }
 
     public String getPassword() {
@@ -93,8 +95,8 @@ public class User {
         this.password = password;
     }
 
-    public User(String phone, String name, String password, String email) {
-        this.phone = phone;
+    public User(String phoneNumber, String name, String password, String email) {
+        this.phoneNumber = phoneNumber;
         this.name = name;
         this.password = password;
         this.email = email;

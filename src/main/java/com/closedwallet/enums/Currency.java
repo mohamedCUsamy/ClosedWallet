@@ -1,4 +1,4 @@
-package com.closedwallet.Entity;
+package com.closedwallet.enums;
 
 public enum Currency {
     EGP,USD,EURO,GBP

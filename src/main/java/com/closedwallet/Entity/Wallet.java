@@ -1,5 +1,8 @@
 package com.closedwallet.Entity;
 
+import com.closedwallet.enums.Currency;
+import com.closedwallet.enums.WalletStatus;
+
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;

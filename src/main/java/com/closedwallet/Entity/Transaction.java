@@ -5,6 +5,10 @@ import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+import com.closedwallet.enums.TransactionStatus;
+
+import com.closedwallet.enums.TransactionType;
+
 @Entity
 public class Transaction {
     @Id

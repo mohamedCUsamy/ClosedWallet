@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
 
+import com.closedwallet.enums.MerchantCategory;
+
 @Entity
 public class Merchant {
 
