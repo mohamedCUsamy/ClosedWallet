@@ -37,3 +37,6 @@ src/main/resources/application.properties
 *.properties
 src/main/resources/application.properties
 *.properties
+debug.log
+.postman/resources.yaml
+postman/globals/workspace.globals.yaml
