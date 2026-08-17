@@ -3,6 +3,7 @@ package com.closedwallet.Controller;
 import com.closedwallet.Service.UserService;
 import com.closedwallet.dto.*;
 import org.springframework.security.core.Authentication;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -37,12 +38,16 @@ public class UserController {
 		String email = authentication.getName();
 		return userService.getProfile(email);
 	}
-
-
-	@GetMapping("/users")
-	public String users() {
-		return "Hello users";
+	@PutMapping("/changepassword")
+	public ChangePassResponse changePassword(Authentication authentication, @Valid @RequestBody ChangePassRequest changePassRequest) throws Exception {
+		String email = authentication.getName();
+		return userService.changePassword(email,changePassRequest);
 	}
+
+//	@GetMapping("/users")
+//	public String users() {
+//		return "Hello users";
+//	}
 
 	
 }
