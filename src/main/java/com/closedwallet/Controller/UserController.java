@@ -18,18 +18,13 @@ public class UserController {
 		this.userService = userService;
 	}
 
-    @GetMapping("/users")
-	public String users() {
-		return "Hello users";
-	}
-
 
 	@PostMapping("create-user")
 	public UserResponse createUser(UserRequest userRequest) {
 		return userService.createUser(userRequest);
 	}
 
-	@GetMapping("/")
+	@GetMapping("/home")
 	public String home() {
 		return "Welcome to your closed wallet ";
 	}
