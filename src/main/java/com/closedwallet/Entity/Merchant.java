@@ -15,6 +15,7 @@ public class Merchant {
     private String name;
     private String email;
     private String phone;
+    private String logoPath;
     @Enumerated(EnumType.STRING)
     private MerchantCategory category;
     @OneToOne(mappedBy = "merchant")
@@ -97,5 +98,13 @@ public class Merchant {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public void setLogoPath(String logoPath) {
+        this.logoPath = logoPath;
+    }
+
+    public String getLogoPath() {
+        return logoPath;
     }
 }
