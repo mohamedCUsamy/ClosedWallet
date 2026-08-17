@@ -34,5 +34,11 @@ public class MerchantController {
     public List<MerchantResponse> getMerchantsByCategory(@PathVariable MerchantCategory category){
         return merchantService.getMerchantsByCategory(category);
     }
+
+    @GetMapping("/home")
+    public String hello(){ 
+        return "hello application";
+    }
+ 
     
 }
