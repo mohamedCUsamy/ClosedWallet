@@ -4,9 +4,11 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.GetMapping;
 import java.util.List;
 
+
 import org.springframework.web.bind.annotation.PathVariable;
 import com.closedwallet.Service.MerchantService;
 import com.closedwallet.dto.MerchantResponse;
+import com.closedwallet.enums.MerchantCategory;
 import com.closedwallet.Entity.Merchant;
 
 @RestController
@@ -26,6 +28,11 @@ public class MerchantController {
     @GetMapping("/api/merchants/{id}")
     public MerchantResponse getMerchantById(@PathVariable Long id){
         return merchantService.getMerchantById(id);
+    }
+
+    @GetMapping("/api/merchants/category/{category}")
+    public List<MerchantResponse> getMerchantsByCategory(@PathVariable MerchantCategory category){
+        return merchantService.getMerchantsByCategory(category);
     }
     
 }
