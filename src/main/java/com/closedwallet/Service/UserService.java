@@ -11,6 +11,7 @@ import com.closedwallet.enums.Currency;
 import com.closedwallet.enums.KycStatus;
 import com.closedwallet.enums.Role;
 import com.closedwallet.enums.WalletStatus;
+import jakarta.validation.constraints.Null;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -69,7 +70,7 @@ public class UserService {
         if(!passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
             throw new InvalidPassOrEmail("Invalid Email or Password");
         }
-        String token = jwtService.generateToken(user);
+        String token = jwtService.generateToken(user.getEmail());
         LoginResponse loginResponse = new LoginResponse();
         loginResponse.setResponseCode("200");
         loginResponse.setResponseMessage("Success");
@@ -81,15 +82,12 @@ public class UserService {
     }
     public UpdateResponse updateUser(String currentUserEmail,UpdateRequest updateRequest) throws Exception {
         User user = userRepository.findByEmail(currentUserEmail).orElseThrow(() -> new RuntimeException("User not found"));
-        if (userRepository.existsByEmailAndIdNot(updateRequest.getEmail(), user.getId())) {
-            throw new UserExisitsException("Email is already in use");
-        }
-        if (userRepository.existsByPhoneNumberAndIdNot(updateRequest.getPhoneNumber(), user.getId()))
-        {
-            throw new UserExisitsException("Phone number is already in use");
+        if(!user.getPhoneNumber().equals(updateRequest.getPhoneNumber())) {
+            if(userRepository.existsByPhoneNumber(updateRequest.getPhoneNumber())) {
+                throw new UserExisitsException("Phone number already exists");
+            }
         }
         user.setName(updateRequest.getName());
-        user.setEmail(updateRequest.getEmail());
         user.setPhoneNumber(updateRequest.getPhoneNumber());
         User updatedUser = userRepository.save(user);
         return new UpdateResponse();

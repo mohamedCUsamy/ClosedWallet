@@ -15,11 +15,7 @@ public class UpdateRequest {
     @Size(min = 2, max = 100, message = "Name must be between 2 and 100 characters")
     private String name;
     @NotBlank
-    @Email(message = "Enter valid email")
-    private String email;
-    @NotBlank
-    @Pattern(regexp = "^01[0125][0-9]{8}$"
-            ,message = "Enter valid number")
+    @Pattern(regexp = "^01[0125][0-9]{8}$",message = "Enter valid number")
     private String phoneNumber;
 
 
