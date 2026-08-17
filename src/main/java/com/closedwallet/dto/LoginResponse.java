@@ -5,8 +5,10 @@ import lombok.Setter;
 
 @Setter
 @Getter
-public class UserResponse {
+public class LoginResponse {
     private String responseCode;
     private String responseMessage;
     private String responseDescription;
+    private String token;
+
 }

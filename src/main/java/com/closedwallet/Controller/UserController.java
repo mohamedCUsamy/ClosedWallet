@@ -1,36 +1,48 @@
-
 package com.closedwallet.Controller;
 
 import com.closedwallet.Service.UserService;
-import com.closedwallet.dto.UserRequest;
-import com.closedwallet.dto.UserResponse;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RestController;
-
+import com.closedwallet.dto.*;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
+@RequestMapping("/api/auth")
 public class UserController {
-	private UserService userService;
+
+	private final UserService userService;
 
 	public UserController(UserService userService) {
 		this.userService = userService;
 	}
 
+	@PostMapping("/register")
+	public RegisterResponse register(
+			 @RequestBody RegisterRequest registerRequest) throws Exception {
 
-	@PostMapping("create-user")
-	public UserResponse createUser(UserRequest userRequest) {
-		return userService.createUser(userRequest);
+		return userService.register(registerRequest);
+	}
+    @PostMapping("/login")
+    public LoginResponse login(
+            @RequestBody LoginRequest loginRequest) throws Exception {
+
+        return userService.login(loginRequest);
+    }
+	@PutMapping("/updateuser")
+	public UpdateResponse updateUser(Authentication authentication,@RequestBody UpdateRequest updateRequest) throws Exception {
+		String email = authentication.getName();
+		return userService.updateUser(email,updateRequest);
+	}
+	@GetMapping("/profile")
+	public ProfileResponse getProfile(Authentication authentication) {
+		String email = authentication.getName();
+		return userService.getProfile(email);
 	}
 
-	@GetMapping("/home")
-	public String home() {
-		return "Welcome to your closed wallet ";
+
+	@GetMapping("/users")
+	public String users() {
+		return "Hello users";
 	}
+
 	
-
-
-    
-
 }

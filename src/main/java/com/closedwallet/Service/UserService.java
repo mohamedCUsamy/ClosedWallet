@@ -1,40 +1,103 @@
 package com.closedwallet.Service;
 
 import com.closedwallet.Entity.User;
-import com.closedwallet.Exception.RequiredFieldException;
+import com.closedwallet.Entity.Wallet;
+import com.closedwallet.Exception.InvalidPassOrEmail;
+import com.closedwallet.Exception.UserExisitsException;
 import com.closedwallet.Repository.UserRepository;
-import com.closedwallet.dto.UserRequest;
-import com.closedwallet.dto.UserResponse;
+import com.closedwallet.Repository.WalletRepository;
+import com.closedwallet.dto.*;
+import com.closedwallet.enums.Currency;
+import com.closedwallet.enums.KycStatus;
+import com.closedwallet.enums.Role;
+import com.closedwallet.enums.WalletStatus;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.math.BigDecimal;
+import java.util.Optional;
 
 @Service
 public class UserService {
     private final UserRepository userRepository;
-
-    public UserService(UserRepository userRepository) {
+    private final WalletRepository walletRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
+    public UserService(UserRepository userRepository, WalletRepository walletRepository, PasswordEncoder passwordEncoder, JwtService jwtService) {
         this.userRepository = userRepository;
+        this.walletRepository = walletRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.jwtService = jwtService;
     }
 
-    public UserResponse createUser(UserRequest userRequest)   {
+    public RegisterResponse register(RegisterRequest registerRequest) throws Exception  {
+        if(userRepository.existsByEmail(registerRequest.getEmail())) {
+            throw new UserExisitsException("Email already exists");
+        }
+        if (userRepository.existsByPhoneNumber(registerRequest.getPhoneNumber())) {
+            throw new UserExisitsException("Phone number already exists");
+        }
+        if(!registerRequest.getPassword().equals(registerRequest.getConfirmPassword())) {
+            throw new Exception("Passwords do not match");
+        }
+
         User user = new User();
-        user.setEmail(userRequest.getEmail());
-        user.setPassword(userRequest.getPassword());
-        user.setName(userRequest.getName());
-        user.setPhoneNumber(userRequest.getPhoneNumber());
-
+        user.setEmail(registerRequest.getEmail());
+        user.setName(registerRequest.getName());
+        user.setPhoneNumber(registerRequest.getPhoneNumber());
+        user.setRole(Role.USER);
+        user.setKycStatus(KycStatus.PENDING);
+        user.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
         userRepository.save(user);
+        Wallet wallet = new Wallet();
+        wallet.setUser(user);
+        wallet.setBalance(BigDecimal.ZERO);
+        wallet.setCurrency(Currency.EGP);
+        wallet.setStatus(WalletStatus.ACTIVE);
+        walletRepository.save(wallet);
+        RegisterResponse registerResponse = new RegisterResponse();
+        registerResponse.setResponseCode("200");
+        registerResponse.setResponseMessage("Success");
+        registerResponse.setResponseDescription("User Created Hamada");
 
-        UserResponse userResponse = new UserResponse();
-        userResponse.setResponseCode("200");
-        userResponse.setResponseMessage("Success");
-        userResponse.setResponseDescription("User Created Hamada");
+        return registerResponse;
 
-        return userResponse;
+    }
+    public LoginResponse login(LoginRequest loginRequest) throws Exception {
+        User user = userRepository.findByEmail(loginRequest.getEmail()).orElseThrow(() ->
+                new InvalidPassOrEmail( "Invalid Email or Password"));
+        if(!passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
+            throw new InvalidPassOrEmail("Invalid Email or Password");
+        }
+        String token = jwtService.generateToken(user);
+        LoginResponse loginResponse = new LoginResponse();
+        loginResponse.setResponseCode("200");
+        loginResponse.setResponseMessage("Success");
+        loginResponse.setResponseDescription("Login successful");
+        loginResponse.setToken(token);
 
+        return loginResponse;
+
+    }
+    public UpdateResponse updateUser(String currentUserEmail,UpdateRequest updateRequest) throws Exception {
+        User user = userRepository.findByEmail(currentUserEmail).orElseThrow(() -> new RuntimeException("User not found"));
+        if (userRepository.existsByEmailAndIdNot(updateRequest.getEmail(), user.getId())) {
+            throw new UserExisitsException("Email is already in use");
+        }
+        if (userRepository.existsByPhoneNumberAndIdNot(updateRequest.getPhoneNumber(), user.getId()))
+        {
+            throw new UserExisitsException("Phone number is already in use");
+        }
+        user.setName(updateRequest.getName());
+        user.setEmail(updateRequest.getEmail());
+        user.setPhoneNumber(updateRequest.getPhoneNumber());
+        User updatedUser = userRepository.save(user);
+        return new UpdateResponse();
     }
 
 
-
-
-
+    public ProfileResponse getProfile(String email) {
+       User user= userRepository.findByEmail(email).orElseThrow(()-> new RuntimeException("User not found"));
+       return new ProfileResponse(user.getEmail(),user.getName(),user.getPhoneNumber());
+    }
 }

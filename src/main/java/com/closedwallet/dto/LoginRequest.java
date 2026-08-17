@@ -2,12 +2,9 @@ package com.closedwallet.dto;
 
 import lombok.Getter;
 import lombok.Setter;
-
-@Setter
 @Getter
-public class UserRequest {
+@Setter
+public class LoginRequest {
     private String email;
-    private String phoneNumber;
-    private String name;
     private String password;
 }
