@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.Optional;
+import java.util.Objects;
 
 @Service
 public class UserService {
@@ -90,12 +91,24 @@ public class UserService {
         user.setName(updateRequest.getName());
         user.setPhoneNumber(updateRequest.getPhoneNumber());
         User updatedUser = userRepository.save(user);
-        return new UpdateResponse();
+        return new UpdateResponse("200","Profile updated");
     }
 
 
     public ProfileResponse getProfile(String email) {
        User user= userRepository.findByEmail(email).orElseThrow(()-> new RuntimeException("User not found"));
        return new ProfileResponse(user.getEmail(),user.getName(),user.getPhoneNumber());
+    }
+    public ChangePassResponse changePassword(String email,ChangePassRequest changePassRequest) throws Exception {
+        if (changePassRequest == null || changePassRequest.getPassword() == null || changePassRequest.getConfirmPassword() == null) {
+            throw new Exception("Password and confirmPassword are required");
+        }
+        if(!Objects.equals(changePassRequest.getPassword(), changePassRequest.getConfirmPassword())) {
+            throw new Exception("Please confirm the password correctly");
+        }
+        User user = userRepository.findByEmail(email).orElseThrow(()-> new RuntimeException("User not found"));
+        user.setPassword(passwordEncoder.encode(changePassRequest.getPassword()));
+        userRepository.save(user);
+        return new ChangePassResponse("200","Password changed successfully");
     }
 }
