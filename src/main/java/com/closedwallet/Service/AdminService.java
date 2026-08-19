@@ -100,14 +100,38 @@ public class AdminService {
 
     @Transactional
     public Merchant createMerchant(CreateMerchantRequest request, Authentication authentication) {
+        if (request == null) {
+            throw new IllegalArgumentException("Merchant request is required");
+        }
+
+        String name = request.getName() == null ? "" : request.getName().trim();
+        String email = request.getEmail() == null ? "" : request.getEmail().trim();
+        String phone = request.getPhone() == null ? "" : request.getPhone().trim();
+
+        if (name.isEmpty()) {
+            throw new IllegalArgumentException("Merchant name is required");
+        }
+        if (email.isEmpty()) {
+            throw new IllegalArgumentException("Merchant email is required");
+        }
+        if (phone.isEmpty()) {
+            throw new IllegalArgumentException("Merchant phone is required");
+        }
+        if (request.getCategory() == null) {
+            throw new IllegalArgumentException("Merchant category is required");
+        }
+
         Merchant merchant = new Merchant();
-        merchant.setName(request.getName());
-        merchant.setEmail(request.getEmail());
-        merchant.setPhone(request.getPhone());
+        merchant.setName(name);
+        merchant.setEmail(email);
+        merchant.setPhone(phone);
         merchant.setLogoPath(request.getLogoPath());
         merchant.setCategory(request.getCategory());
 
         Merchant saved = merchantRepository.save(merchant);
+        if (saved == null || saved.getId() == null) {
+            throw new IllegalStateException("Merchant could not be created");
+        }
 
         Wallet wallet = new Wallet();
         wallet.setMerchant(saved);
@@ -126,6 +150,10 @@ public class AdminService {
         Wallet wallet = walletRepository.findById(walletId)
                 .orElseThrow(() -> new RuntimeException("Wallet not found"));
 
+        if (wallet.getStatus() == WalletStatus.FROZEN) {
+            throw new IllegalStateException("Wallet is already frozen");
+        }
+
         wallet.setStatus(WalletStatus.FROZEN);
         walletRepository.save(wallet);
 
@@ -142,6 +170,10 @@ public class AdminService {
     public AdminActionResponse unfreezeWallet(Long walletId, Authentication authentication) {
         Wallet wallet = walletRepository.findById(walletId)
                 .orElseThrow(() -> new RuntimeException("Wallet not found"));
+
+        if (wallet.getStatus() == WalletStatus.ACTIVE) {
+            throw new IllegalStateException("Wallet is already active");
+        }
 
         wallet.setStatus(WalletStatus.ACTIVE);
         walletRepository.save(wallet);
