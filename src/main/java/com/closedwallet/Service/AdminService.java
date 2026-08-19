@@ -6,21 +6,20 @@ import com.closedwallet.Entity.Transaction;
 import com.closedwallet.Entity.User;
 import com.closedwallet.Entity.Wallet;
 import com.closedwallet.Exception.AdminResourceNotFoundException;
+import com.closedwallet.Exception.UserExisitsException;
 import com.closedwallet.Repository.AdminAuditLogRepository;
 import com.closedwallet.Repository.MerchantRepository;
 import com.closedwallet.Repository.TransactionRepository;
 import com.closedwallet.Repository.UserRepository;
 import com.closedwallet.Repository.WalletRepository;
-import com.closedwallet.dto.AdminActionResponse;
-import com.closedwallet.dto.AdminTransactionResponse;
-import com.closedwallet.dto.AdminUserResponse;
-import com.closedwallet.dto.AdminWalletResponse;
-import com.closedwallet.dto.CreateMerchantRequest;
+import com.closedwallet.dto.*;
 import com.closedwallet.enums.AdminAction;
 import com.closedwallet.enums.Role;
 import com.closedwallet.enums.WalletStatus;
+import com.fasterxml.jackson.core.Base64Variant;
 import jakarta.transaction.Transactional;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -34,17 +33,18 @@ public class AdminService {
     private final TransactionRepository transactionRepository;
     private final MerchantRepository merchantRepository;
     private final AdminAuditLogRepository adminAuditLogRepository;
-
+    private final PasswordEncoder passwordEncoder;
     public AdminService(UserRepository userRepository,
                         WalletRepository walletRepository,
                         TransactionRepository transactionRepository,
                         MerchantRepository merchantRepository,
-                        AdminAuditLogRepository adminAuditLogRepository) {
+                        AdminAuditLogRepository adminAuditLogRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.walletRepository = walletRepository;
         this.transactionRepository = transactionRepository;
         this.merchantRepository = merchantRepository;
         this.adminAuditLogRepository = adminAuditLogRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public List<AdminUserResponse> getAllUsers() {
@@ -197,5 +197,29 @@ public class AdminService {
         log.setAction(action);
         log.setTargetEntity(targetEntity + ":" + targetId);
         adminAuditLogRepository.save(log);
+    }
+
+    public CreateAdminResponse createAdmin(CreateAdminRequest createAdminRequest, Authentication authentication) throws Exception {
+        if (userRepository.existsByEmail(createAdminRequest.getEmail())) {
+            throw new UserExisitsException("Email already exists");
+        }
+
+        User admin = new User();
+        admin.setEmail(createAdminRequest.getEmail());
+        admin.setPassword(passwordEncoder.encode(createAdminRequest.getPassword()));
+        admin.setRole(Role.ADMIN);
+        User savedAdmin = userRepository.save(admin);
+
+        User actor = userRepository.findByEmail(authentication.getName())
+                .orElseThrow(() -> new RuntimeException("Admin not found"));
+
+        AdminAuditLog log = new AdminAuditLog();
+        log.setAdminId(actor.getId());
+        log.setAction(AdminAction.CREATE_ADMIN);
+        log.setTargetEntity("User:" + savedAdmin.getId());
+        adminAuditLogRepository.save(log);
+
+        CreateAdminResponse response = new CreateAdminResponse("200", "Admin created successfully");
+        return response;
     }
 }
