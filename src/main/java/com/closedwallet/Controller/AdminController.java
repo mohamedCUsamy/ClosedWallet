@@ -2,11 +2,8 @@ package com.closedwallet.Controller;
 
 import com.closedwallet.Entity.Merchant;
 import com.closedwallet.Service.AdminService;
-import com.closedwallet.dto.AdminActionResponse;
-import com.closedwallet.dto.AdminTransactionResponse;
-import com.closedwallet.dto.AdminUserResponse;
-import com.closedwallet.dto.AdminWalletResponse;
-import com.closedwallet.dto.CreateMerchantRequest;
+import com.closedwallet.dto.*;
+import jakarta.validation.Valid;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -14,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/admin")
+@RequestMapping("/api/auth/admin")
 @PreAuthorize("hasRole('ADMIN')")
 public class AdminController {
     private final AdminService adminService;
@@ -27,7 +24,10 @@ public class AdminController {
     public List<AdminUserResponse> getAllUsers() {
         return adminService.getAllUsers();
     }
-
+    @PostMapping("/createadmin")
+    public CreateAdminResponse createAdmin(@Valid @RequestBody CreateAdminRequest createAdminRequest, Authentication authentication) throws Exception{
+        return adminService.createAdmin(createAdminRequest,authentication);
+    }
     @GetMapping("/wallets")
     public List<AdminWalletResponse> getAllWallets() {
         return adminService.getAllWallets();
