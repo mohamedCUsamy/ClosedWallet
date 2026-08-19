@@ -5,6 +5,7 @@ import com.closedwallet.Entity.Merchant;
 import com.closedwallet.Entity.Transaction;
 import com.closedwallet.Entity.User;
 import com.closedwallet.Entity.Wallet;
+import com.closedwallet.Exception.AdminResourceNotFoundException;
 import com.closedwallet.Repository.AdminAuditLogRepository;
 import com.closedwallet.Repository.MerchantRepository;
 import com.closedwallet.Repository.TransactionRepository;
@@ -148,7 +149,7 @@ public class AdminService {
     @Transactional
     public AdminActionResponse freezeWallet(Long walletId, Authentication authentication) {
         Wallet wallet = walletRepository.findById(walletId)
-                .orElseThrow(() -> new RuntimeException("Wallet not found"));
+            .orElseThrow(() -> new AdminResourceNotFoundException("Wallet not found"));
 
         if (wallet.getStatus() == WalletStatus.FROZEN) {
             throw new IllegalStateException("Wallet is already frozen");
@@ -169,7 +170,7 @@ public class AdminService {
     @Transactional
     public AdminActionResponse unfreezeWallet(Long walletId, Authentication authentication) {
         Wallet wallet = walletRepository.findById(walletId)
-                .orElseThrow(() -> new RuntimeException("Wallet not found"));
+            .orElseThrow(() -> new AdminResourceNotFoundException("Wallet not found"));
 
         if (wallet.getStatus() == WalletStatus.ACTIVE) {
             throw new IllegalStateException("Wallet is already active");
