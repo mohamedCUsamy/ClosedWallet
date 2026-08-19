@@ -108,13 +108,21 @@ public class MerchantSeeder implements CommandLineRunner {
 
     private String[] poolFor(MerchantCategory category) {
         switch (category) {
-            case RESTAURANT:    return RESTAURANT;
-            case GROCERY:       return GROCERY;
-            case CLOTHING:      return CLOTHING;
-            case SERVICES:      return SERVICES;
-            case ENTERTAINMENT: return ENTERTAINMENT;
-            case ELECTRONICS:   return ELECTRONICS;
-            default:            return RESTAURANT;
+            case RESTAURANT:
+            case FOOD:
+                return RESTAURANT;
+            case GROCERY:
+                return GROCERY;
+            case CLOTHING:
+                return CLOTHING;
+            case SERVICES:
+                return SERVICES;
+            case ENTERTAINMENT:
+                return ENTERTAINMENT;
+            case ELECTRONICS:
+                return ELECTRONICS;
+            default:
+                return RESTAURANT;
         }
     }
 
