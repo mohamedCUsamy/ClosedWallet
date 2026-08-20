@@ -11,7 +11,7 @@ import com.closedwallet.dto.MerchantResponse;
 import com.closedwallet.enums.MerchantCategory;
 import com.closedwallet.Entity.Merchant;
 
-@RestController
+@RestController("/api/auth")
 public class MerchantController {
 
     MerchantService merchantService;
@@ -20,17 +20,17 @@ public class MerchantController {
         this.merchantService = merchantService;
     }
 
-     @GetMapping("/api/merchants")
+     @GetMapping("/merchants")
     public List<MerchantResponse> getMerchants() {
         return merchantService.getAllMerchants();
     }
 
-    @GetMapping("/api/merchants/{id}")
+    @GetMapping("/merchants/{id}")
     public MerchantResponse getMerchantById(@PathVariable Long id){
         return merchantService.getMerchantById(id);
     }
 
-    @GetMapping("/api/merchants/category/{category}")
+    @GetMapping("/merchants/category/{category}")
     public List<MerchantResponse> getMerchantsByCategory(@PathVariable MerchantCategory category){
         return merchantService.getMerchantsByCategory(category);
     }

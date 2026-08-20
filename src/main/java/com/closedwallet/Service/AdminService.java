@@ -51,18 +51,21 @@ public class AdminService {
         List<AdminUserResponse> response = new ArrayList<>();
         for (User user : userRepository.findAll()) {
             Wallet wallet = user.getWallet();
-            AdminUserResponse item = new AdminUserResponse();
-            item.setId(user.getId());
-            item.setName(user.getName());
-            item.setEmail(user.getEmail());
-            item.setPhoneNumber(user.getPhoneNumber());
-            item.setRole(user.getRole());
-            if (wallet != null) {
+            AdminUserResponse item;
+            if(user.getRole() == Role.USER && wallet != null){
+                item = new AdminUserResponse();
+                item.setId(user.getId());
+                item.setName(user.getName());
+                item.setEmail(user.getEmail());
+                item.setPhoneNumber(user.getPhoneNumber());
+                item.setRole(user.getRole());
                 item.setWalletId(wallet.getId());
                 item.setBalance(wallet.getBalance());
                 item.setWalletStatus(wallet.getStatus());
+                response.add(item);
             }
-            response.add(item);
+
+
         }
         return response;
     }
@@ -71,13 +74,16 @@ public class AdminService {
         List<AdminWalletResponse> response = new ArrayList<>();
         for (Wallet wallet : walletRepository.findAll()) {
             AdminWalletResponse item = new AdminWalletResponse();
-            item.setId(wallet.getId());
-            item.setBalance(wallet.getBalance());
-            item.setCurrency(wallet.getCurrency());
-            item.setStatus(wallet.getStatus());
-            item.setUserId(wallet.getUser() != null ? wallet.getUser().getId() : null);
-            item.setMerchantId(wallet.getMerchant() != null ? wallet.getMerchant().getId() : null);
-            response.add(item);
+            if(wallet.getUser().getRole()== Role.USER){
+                item.setId(wallet.getId());
+                item.setBalance(wallet.getBalance());
+                item.setCurrency(wallet.getCurrency());
+                item.setStatus(wallet.getStatus());
+                item.setUserId(wallet.getUser() != null ? wallet.getUser().getId() : null);
+                item.setMerchantId(wallet.getMerchant() != null ? wallet.getMerchant().getId() : null);
+                response.add(item);
+            }
+
         }
         return response;
     }

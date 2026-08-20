@@ -18,18 +18,18 @@ public class UserController {
 
 	@PostMapping("/register")
 	public RegisterResponse register(
-			 @RequestBody RegisterRequest registerRequest) throws Exception {
+		 @Valid @RequestBody RegisterRequest registerRequest) throws Exception {
 
 		return userService.register(registerRequest);
 	}
     @PostMapping("/login")
     public LoginResponse login(
-            @RequestBody LoginRequest loginRequest) throws Exception {
+           @Valid @RequestBody LoginRequest loginRequest) throws Exception {
 
         return userService.login(loginRequest);
     }
 	@PutMapping("/updateuser")
-	public UpdateResponse updateUser(Authentication authentication,@RequestBody UpdateRequest updateRequest) throws Exception {
+	public UpdateResponse updateUser(Authentication authentication,@Valid@RequestBody UpdateRequest updateRequest) throws Exception {
 		String email = authentication.getName();
 		return userService.updateUser(email,updateRequest);
 	}
