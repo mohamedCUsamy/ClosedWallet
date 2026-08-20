@@ -2,6 +2,8 @@ package com.closedwallet.Entity;
 
 import com.closedwallet.enums.Role;
 import com.closedwallet.enums.KycStatus;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -18,6 +20,7 @@ public class User {
     private Long id;
 
     @OneToOne(mappedBy = "user")
+    @JsonIgnoreProperties({"user", "merchant"})
     private Wallet wallet;
 
     private String name;
@@ -43,6 +46,11 @@ public class User {
         this.name = name;
         this.password = password;
         this.email = email;
+    }
+
+    @JsonIgnore
+    public Wallet getUserWallet(){
+        return wallet;
     }
 
     public User() {

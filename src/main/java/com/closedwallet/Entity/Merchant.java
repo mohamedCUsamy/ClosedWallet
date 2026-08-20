@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 import com.closedwallet.enums.MerchantCategory;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @Entity
 public class Merchant {
@@ -19,6 +20,7 @@ public class Merchant {
     @Enumerated(EnumType.STRING)
     private MerchantCategory category;
     @OneToOne(mappedBy = "merchant")
+    @JsonIgnoreProperties({"user", "merchant"})
     private Wallet wallet;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

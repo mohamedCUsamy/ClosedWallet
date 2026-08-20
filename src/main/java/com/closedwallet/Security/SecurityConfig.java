@@ -1,15 +1,16 @@
 package com.closedwallet.Security;
 
-import com.closedwallet.Service.JwtService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import com.closedwallet.Service.JwtService;
 
 @Configuration
 public class SecurityConfig {
@@ -35,8 +36,11 @@ public class SecurityConfig {
                         "/swagger-ui/**",
                         "/swagger-ui.html",
                         "/v3/api-docs/**",
+                        "/v3/api-docs",
                         "/api/auth/register",
-                        "/api/auth/login", "/home"
+                        "/api/auth/login",
+                        "/api/db/**",
+                        "/home"
                         ).permitAll()
                         .anyRequest().authenticated()
                 ).addFilterBefore(

@@ -19,6 +19,8 @@ import java.math.BigDecimal;
 import java.util.Optional;
 import java.util.Objects;
 
+import org.springframework.transaction.annotation.Transactional;
+
 @Service
 public class UserService {
     private final UserRepository userRepository;
@@ -111,4 +113,15 @@ public class UserService {
         userRepository.save(user);
         return new ChangePassResponse("200","Password changed successfully");
     }
+
+
+    @Transactional(rollbackFor = Exception.class)
+    public boolean topUpWallet(BigDecimal amount,String email) {
+
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
+        user.getUserWallet().setBalance(user.getUserWallet().getBalance().add(amount));
+        walletRepository.save(user.getUserWallet());
+        return true;
+    }
+
 }
