@@ -5,6 +5,8 @@ import com.closedwallet.dto.*;
 import org.springframework.security.core.Authentication;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RestController;
+
 
 @RestController
 @RequestMapping("/api/auth")
@@ -42,6 +44,18 @@ public class UserController {
 	public ChangePassResponse changePassword(Authentication authentication, @Valid @RequestBody ChangePassRequest changePassRequest) throws Exception {
 		String email = authentication.getName();
 		return userService.changePassword(email,changePassRequest);
+	}
+
+	@PostMapping("/topupwallet")
+	public boolean topUpWallet(@RequestBody TopUpRequest topUpRequest, Authentication authentication) {
+		String email = authentication.getName();
+		return userService.topUpWallet(topUpRequest.getAmount(), email);
+	}
+
+	@GetMapping("/wallet")
+	public WalletResponse getWallet(Authentication authentication) {
+		String email = authentication.getName();
+		return userService.getWallet(email);
 	}
 
 //	@GetMapping("/users")

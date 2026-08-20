@@ -2,6 +2,7 @@ package com.closedwallet.Entity;
 
 import com.closedwallet.enums.Currency;
 import com.closedwallet.enums.WalletStatus;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import jakarta.persistence.*;
 
@@ -19,13 +20,15 @@ public class Wallet {
 
     @OneToOne
     @JoinColumn(name = "user_id")
+    @JsonIgnoreProperties("wallet")
     private User user;
 
     @OneToOne
     @JoinColumn(name = "merchant_id")
+    @JsonIgnoreProperties("wallet")
     private Merchant merchant;
 
-    private BigDecimal balance;
+    private BigDecimal balance= BigDecimal.ZERO;;
 
     @Enumerated(EnumType.STRING)
     private WalletStatus status;

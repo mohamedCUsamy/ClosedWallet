@@ -40,3 +40,6 @@ src/main/resources/application.properties
 debug.log
 .postman/resources.yaml
 postman/globals/workspace.globals.yaml
+src/main/java/com/closedwallet/Controller/DataViewController.java
+src/main/java/com/closedwallet/Controller/DataViewController.java
+src/main/java/com/closedwallet/Controller/DataViewController.java
