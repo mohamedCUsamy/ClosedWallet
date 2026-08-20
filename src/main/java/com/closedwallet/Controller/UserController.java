@@ -52,6 +52,12 @@ public class UserController {
 		return userService.topUpWallet(topUpRequest.getAmount(), email);
 	}
 
+	@GetMapping("/wallet")
+	public WalletResponse getWallet(Authentication authentication) {
+		String email = authentication.getName();
+		return userService.getWallet(email);
+	}
+
 //	@GetMapping("/users")
 //	public String users() {
 //		return "Hello users";

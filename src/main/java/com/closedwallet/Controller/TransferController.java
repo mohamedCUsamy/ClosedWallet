@@ -18,7 +18,7 @@ public class TransferController {
 
     @PostMapping
     public TransferResponse transfer(@Valid @RequestBody TransferRequest request) {
-        transferService.transfer(request);
+        //transferService.transfer(request);
 
         return new TransferResponse(
                 "Transfer successful",

@@ -124,4 +124,10 @@ public class UserService {
         return true;
     }
 
+    public WalletResponse getWallet(String email) {
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
+        Wallet wallet = user.getUserWallet();
+        return (new WalletResponse(wallet.getId(), wallet.getBalance(), wallet.getCurrency(), wallet.getStatus()));
+    }
+
 }
