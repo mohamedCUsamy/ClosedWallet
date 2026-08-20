@@ -89,19 +89,21 @@ if (-not (Test-Path -Path $MAVEN_M2_PATH)) {
 }
 
 $MAVEN_WRAPPER_DISTS = $null
-if ((Get-Item $MAVEN_M2_PATH).Target[0] -eq $null) {
+$MAVEN_M2_ITEM = Get-Item $MAVEN_M2_PATH
+if ($null -eq $MAVEN_M2_ITEM.Target -or $MAVEN_M2_ITEM.Target.Count -eq 0) {
   $MAVEN_WRAPPER_DISTS = "$MAVEN_M2_PATH/wrapper/dists"
 } else {
-  $MAVEN_WRAPPER_DISTS = (Get-Item $MAVEN_M2_PATH).Target[0] + "/wrapper/dists"
+  $MAVEN_WRAPPER_DISTS = $MAVEN_M2_ITEM.Target[0] + "/wrapper/dists"
 }
 
 $MAVEN_HOME_PARENT = "$MAVEN_WRAPPER_DISTS/$distributionUrlNameMain"
 $MAVEN_HOME_NAME = ([System.Security.Cryptography.SHA256]::Create().ComputeHash([byte[]][char[]]$distributionUrl) | ForEach-Object {$_.ToString("x2")}) -join ''
 $MAVEN_HOME = "$MAVEN_HOME_PARENT/$MAVEN_HOME_NAME"
 
-if (Test-Path -Path "$MAVEN_HOME" -PathType Container) {
+$MAVEN_CMD_PATH = "$MAVEN_HOME/bin/$MVN_CMD"
+if ((Test-Path -Path "$MAVEN_HOME" -PathType Container) -and (Test-Path -Path "$MAVEN_CMD_PATH" -PathType Leaf)) {
   Write-Verbose "found existing MAVEN_HOME at $MAVEN_HOME"
-  Write-Output "MVN_CMD=$MAVEN_HOME/bin/$MVN_CMD"
+  Write-Output "MVN_CMD=$MAVEN_CMD_PATH"
   exit $?
 }
 

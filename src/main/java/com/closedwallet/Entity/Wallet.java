@@ -28,7 +28,7 @@ public class Wallet {
     @JsonIgnoreProperties("wallet")
     private Merchant merchant;
 
-    private BigDecimal balance;
+    private BigDecimal balance= BigDecimal.ZERO;;
 
     @Enumerated(EnumType.STRING)
     private WalletStatus status;
