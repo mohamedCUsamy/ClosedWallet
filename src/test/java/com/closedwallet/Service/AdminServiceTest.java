@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Optional;
@@ -48,7 +49,7 @@ class AdminServiceTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        PasswordEncoder passwordEncoder;
+        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
         adminService = new AdminService(
                 userRepository,
                 walletRepository,
