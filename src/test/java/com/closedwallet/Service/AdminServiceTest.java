@@ -48,7 +48,7 @@ class AdminServiceTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        PasswordEncoder passwordEncoder;
+        PasswordEncoder passwordEncoder = null;
         adminService = new AdminService(
                 userRepository,
                 walletRepository,

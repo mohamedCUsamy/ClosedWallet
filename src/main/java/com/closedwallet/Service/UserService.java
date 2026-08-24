@@ -79,6 +79,7 @@ public class UserService {
         loginResponse.setResponseMessage("Success");
         loginResponse.setResponseDescription("Login successful");
         loginResponse.setToken(token);
+        loginResponse.setRole(user.getRole());
 
         return loginResponse;
 
@@ -99,7 +100,7 @@ public class UserService {
 
     public ProfileResponse getProfile(String email) {
        User user= userRepository.findByEmail(email).orElseThrow(()-> new RuntimeException("User not found"));
-       return new ProfileResponse(user.getEmail(),user.getName(),user.getPhoneNumber());
+       return new ProfileResponse(user.getEmail(),user.getPhoneNumber(),user.getName());
     }
     public ChangePassResponse changePassword(String email,ChangePassRequest changePassRequest) throws Exception {
         if (changePassRequest == null || changePassRequest.getPassword() == null || changePassRequest.getConfirmPassword() == null) {

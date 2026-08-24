@@ -39,7 +39,7 @@ public class AdminController {
     }
 
     @PostMapping("/merchants")
-    public Merchant createMerchant(@RequestBody CreateMerchantRequest request, Authentication authentication) {
+    public CreateMerchantResponse createMerchant(@RequestBody CreateMerchantRequest request, Authentication authentication) {
         return adminService.createMerchant(request, authentication);
     }
 
@@ -52,4 +52,26 @@ public class AdminController {
     public AdminActionResponse unfreezeWallet(@PathVariable Long id, Authentication authentication) {
         return adminService.unfreezeWallet(id, authentication);
     }
+    @GetMapping("/wallets/{id}")
+    public AdminWalletResponse getWallet(@PathVariable Long id, Authentication authentication) throws Exception{
+        return adminService.getWalletDetails(id,authentication);
+    }
+
+    @GetMapping("/users/{id}")
+    public AdminUserResponse getUser(@PathVariable Long id, Authentication authentication) throws Exception{
+        return adminService.getUserDetails(id,authentication);
+    }
+    @GetMapping("/merchants/{id}")
+    public AdminMerchantResponse getMerchant(@PathVariable Long id, Authentication authentication) throws Exception{
+        return adminService.getMerchantDetails(id,authentication);
+    }
+    @GetMapping("/transactions/{id}")
+    public AdminTransactionResponse getTransaction(@PathVariable Long id, Authentication authentication) throws Exception{
+        return adminService.getTransactionDetails(id,authentication);
+    }
+    @GetMapping("/audit-log")
+    public List<AdminAuditLogResponse> getAllAuditLogs(Authentication authentication) throws Exception{
+        return adminService.getAllAuditLogs(authentication);
+    }
+
 }

@@ -4,16 +4,24 @@ import com.closedwallet.Entity.Transaction;
 import com.closedwallet.Repository.TransactionRepository;
 import com.closedwallet.Repository.UserRepository;
 import com.closedwallet.Repository.WalletRepository;
+import com.closedwallet.dto.TransactionsResponse;
+import com.closedwallet.dto.TransferResponse;
+import com.closedwallet.dto.WeeklySpendingResponse;
 import com.closedwallet.enums.TransactionStatus;
 import com.closedwallet.enums.TransactionType;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import com.closedwallet.dto.TransferRequest;
 import org.springframework.transaction.annotation.Transactional;
 import com.closedwallet.Entity.User;
 import com.closedwallet.Entity.Wallet;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
+import java.util.ArrayList;
 import java.util.UUID;
-import com.closedwallet.Exception.WalletNotFoundException;
 
 @Service
 public class TransferService {
@@ -32,61 +40,120 @@ public class TransferService {
         this.transactionRepository = transactionRepository;
     }
 
-    // @Transactional
-    // public void transfer(TransferRequest request) {
+    @Transactional
+    public TransferResponse transfer(TransferRequest request, Authentication authentication) {
+        User sender = userRepository.findByEmail(authentication.getName())
+                .orElseThrow(() -> new UsernameNotFoundException("Sender not found"));
+        Wallet senderWallet = sender.getWallet();
+        User receiver;
 
-    //     Wallet senderWallet = walletRepository.findById(request.getSenderWalletId())
-    //             .orElseThrow(() -> new WalletNotFoundException("Sender wallet not found"));
+        if (request.getReceiverEmail() != null && !request.getReceiverEmail().isBlank()) {
+            receiver = userRepository.findByEmail(request.getReceiverEmail())
+                    .orElseThrow(() -> new RuntimeException("Receiver not found"));
+        } else if (request.getReceiverPhone() != null && !request.getReceiverPhone().isBlank()) {
+            receiver = userRepository.findByPhoneNumber(request.getReceiverPhone())
+                    .orElseThrow(() -> new RuntimeException("Receiver not found"));
+        } else {
+            throw new RuntimeException("Receiver email or phone is required");
+        }
 
-    //     User receiver;
+        Wallet receiverWallet = receiver.getWallet();
+        if (receiverWallet == null) {
+            throw new RuntimeException("Receiver wallet not found");
+        }
+        if (senderWallet.getId().equals(receiverWallet.getId())) {
+            throw new RuntimeException("Cannot transfer money to your own wallet");
+        }
+        if (senderWallet.getCurrency() != receiverWallet.getCurrency()) {
+            throw new RuntimeException("Wallet currencies do not match");
+        }
+        if (request.getAmount() == null || request.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new RuntimeException("Amount must be greater than zero");
+        }
+        if (senderWallet.getBalance().compareTo(request.getAmount()) < 0) {
+            throw new RuntimeException("Insufficient balance");
+        }
 
-    //     if (request.getReceiverEmail() != null && !request.getReceiverEmail().isBlank()) {
+        senderWallet.setBalance(senderWallet.getBalance().subtract(request.getAmount()));
+        receiverWallet.setBalance(receiverWallet.getBalance().add(request.getAmount()));
+        walletRepository.save(senderWallet);
+        walletRepository.save(receiverWallet);
 
-    //         receiver = userRepository.findByEmail(request.getReceiverEmail())
-    //                 .orElseThrow(() ->new RuntimeException("Receiver not found"));
+        Transaction transaction = new Transaction();
+        transaction.setSenderWallet(senderWallet);
+        transaction.setReceiverWallet(receiverWallet);
+        transaction.setAmount(request.getAmount());
+        transaction.setType(TransactionType.TRANSFER);
+        transaction.setStatus(TransactionStatus.SUCCESS);
+        transaction.setReferenceId(UUID.randomUUID().toString());
+        Transaction saved = transactionRepository.save(transaction);
 
-    //     } else if (request.getReceiverPhone() != null && !request.getReceiverPhone().isBlank()) {
+        return new TransferResponse("Transfer successful", saved.getSenderWallet().getId(), saved.getAmount());
+    }
 
-    //         receiver = userRepository.findByPhoneNumber(request.getReceiverPhone())
-    //                 .orElseThrow(() -> new RuntimeException("Receiver not found"));
+    public WeeklySpendingResponse getWeeklySpending(Authentication authentication) {
+        User user = userRepository.findByEmail(authentication.getName())
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        Wallet userWallet = walletRepository.findByUser(user)
+                .orElseThrow(() -> new RuntimeException("Wallet not found"));
 
-    //     } else {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime weekAgo = now.minusDays(7);
 
-    //         throw new RuntimeException("Receiver email or phone is required");
-    //     }
-    //     Wallet receiverWallet = receiver.getWallet();
-    //     if(receiverWallet==null){
-    //         throw new RuntimeException("Receiver wallet not found");
-    //     }
-    //     if (senderWallet.getId().equals(receiverWallet.getId())) {
-    //         throw new RuntimeException("Cannot transfer money to your own wallet");
-    //     }
-    //     if (senderWallet.getCurrency() != receiverWallet.getCurrency()) {
-    //         throw new RuntimeException("Wallet currencies do not match");
-    //     }
-    //     if (request.getAmount() == null || request.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
-    //         throw new RuntimeException("Amount must be greater than zero");
-    //     }
-    //     if (senderWallet.getBalance().compareTo(request.getAmount()) < 0) {
-    //         throw new RuntimeException("Insufficient balance");
-    //     }
-    //     senderWallet.setBalance(
-    //             senderWallet.getBalance().subtract(request.getAmount())
-    //     );
-    //     receiverWallet.setBalance(
-    //             receiverWallet.getBalance().add(request.getAmount())
-    //     );
-    //     Transaction transaction= new Transaction();
-    //     transaction.setSenderWallet(senderWallet);
-    //     transaction.setReceiverWallet(receiverWallet);
-    //     transaction.setAmount(request.getAmount());
-    //     transaction.setType(TransactionType.TRANSFER);
-    //     transaction.setStatus(TransactionStatus.SUCCESS);
-    //     transaction.setReferenceId(UUID.randomUUID().toString());
+        List<Transaction> weeklyTransactions = transactionRepository.findByWalletAndDateRange(userWallet, weekAgo);
 
-    //     walletRepository.save(senderWallet);
-    //     walletRepository.save(receiverWallet);
-    //     transactionRepository.save(transaction);
-    // }
+        List<BigDecimal> spending = new ArrayList<>();
+        List<BigDecimal> income = new ArrayList<>();
 
+        for (int i = 0; i < 7; i++) {
+            spending.add(BigDecimal.ZERO);
+            income.add(BigDecimal.ZERO);
+        }
+
+        for (Transaction transaction : weeklyTransactions) {
+            if (transaction.getStatus() != TransactionStatus.SUCCESS) {
+                continue;
+            }
+
+            long daysDifference = ChronoUnit.DAYS.between(weekAgo, transaction.getCreatedAt());
+            int dayIndex = (int) daysDifference;
+
+            if (dayIndex >= 0 && dayIndex < 7) {
+                if (transaction.getSenderWallet().getId().equals(userWallet.getId())) {
+                    BigDecimal currentSpending = spending.get(dayIndex);
+                    spending.set(dayIndex, currentSpending.add(transaction.getAmount()));
+                } else if (transaction.getReceiverWallet().getId().equals(userWallet.getId())) {
+                    BigDecimal currentIncome = income.get(dayIndex);
+                    income.set(dayIndex, currentIncome.add(transaction.getAmount()));
+                }
+            }
+        }
+
+        return new WeeklySpendingResponse(spending, income);
+    }
+
+    public List<TransactionsResponse> getAllTransactions(Authentication authentication) {
+        User user = userRepository.findByEmail(authentication.getName()).orElseThrow(() -> new UsernameNotFoundException("user not found"));
+        Wallet userWallet =walletRepository.findByUser(user).orElseThrow(() -> new RuntimeException("Wallet not found"));
+        List<Transaction> t = transactionRepository.findByWalletAndDateRange(userWallet, LocalDateTime.now().minusDays(7));
+        List<TransactionsResponse> response = new ArrayList<TransactionsResponse>();
+        while (!t.isEmpty()){
+            response.add(mapToDTO(t.removeFirst()));
+        }
+        return response;
+    }
+    private TransactionsResponse mapToDTO(Transaction transaction) {
+
+        return new TransactionsResponse(
+                transaction.getId(),
+                transaction.getAmount(),
+                transaction.getType(),
+                transaction.getStatus(),
+                transaction.getReferenceId(),
+                transaction.getCreatedAt(),
+                transaction.getSenderWallet().getUser().getName(),
+                transaction.getReceiverWallet().getUser().getName(),
+                transaction.getSenderWallet().getCurrency()
+                );
+    }
 }

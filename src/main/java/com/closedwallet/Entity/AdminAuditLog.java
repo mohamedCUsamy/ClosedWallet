@@ -6,7 +6,7 @@ import com.closedwallet.enums.AdminAction;
 
 import jakarta.persistence.*;
 @Entity
-public class AdminAuditLog {
+public class  AdminAuditLog {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

@@ -1,5 +1,6 @@
 package com.closedwallet.dto;
 
+import com.closedwallet.enums.Role;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -10,5 +11,6 @@ public class LoginResponse {
     private String responseMessage;
     private String responseDescription;
     private String token;
+    private Role role;
 
 }

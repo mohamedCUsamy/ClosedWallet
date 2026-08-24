@@ -21,13 +21,10 @@ public class UserController {
 	@PostMapping("/register")
 	public RegisterResponse register(
 		 @Valid @RequestBody RegisterRequest registerRequest) throws Exception {
-
 		return userService.register(registerRequest);
 	}
     @PostMapping("/login")
-    public LoginResponse login(
-           @Valid @RequestBody LoginRequest loginRequest) throws Exception {
-
+    public LoginResponse login( @Valid @RequestBody LoginRequest loginRequest) throws Exception {
         return userService.login(loginRequest);
     }
 	@PutMapping("/updateuser")
