@@ -7,15 +7,19 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import com.closedwallet.Entity.Merchant;
+import com.closedwallet.Entity.Transaction;
 import com.closedwallet.Entity.User;
 import com.closedwallet.Entity.Wallet;
 import com.closedwallet.Repository.MerchantRepository;
+import com.closedwallet.Repository.TransactionRepository;
 import com.closedwallet.Repository.UserRepository;
 import com.closedwallet.Repository.WalletRepository;
 import com.closedwallet.enums.Currency;
 import com.closedwallet.enums.KycStatus;
 import com.closedwallet.enums.MerchantCategory;
 import com.closedwallet.enums.Role;
+import com.closedwallet.enums.TransactionStatus;
+import com.closedwallet.enums.TransactionType;
 import com.closedwallet.enums.WalletStatus;
 
 /**
@@ -36,13 +40,15 @@ public class TestDataInitializer implements CommandLineRunner {
     private final MerchantRepository merchantRepository;
     private final WalletRepository walletRepository;
     private final PasswordEncoder passwordEncoder;
+    private final TransactionRepository transactionRepository;
 
     public TestDataInitializer(UserRepository userRepository, MerchantRepository merchantRepository,
-            WalletRepository walletRepository, PasswordEncoder passwordEncoder) {
+            WalletRepository walletRepository, PasswordEncoder passwordEncoder, TransactionRepository transactionRepository) {
         this.userRepository = userRepository;
         this.merchantRepository = merchantRepository;
         this.walletRepository = walletRepository;
         this.passwordEncoder = passwordEncoder;
+        this.transactionRepository = transactionRepository;
     }
 
     @Override
@@ -61,7 +67,7 @@ public class TestDataInitializer implements CommandLineRunner {
 
         createMerchant("merchant1@test.com", "Cairo Grill",   "+201010000001", MerchantCategory.RESTAURANT);
         createMerchant("merchant2@test.com", "Fresh Basket",  "+201010000002", MerchantCategory.GROCERY);
-        createMerchant("merchant3@test.com", "Urban Thread",  "+201010000003", MerchantCategory.CLOTHING);
+        createMerchant("TransactionType", "Urban Thread",  "+201010000003", MerchantCategory.CLOTHING);
         createMerchant("merchant4@test.com", "QuickFix",      "+201010000004", MerchantCategory.SERVICES);
         createMerchant("merchant5@test.com", "Tech Point",    "+201010000005", MerchantCategory.ELECTRONICS);
 
@@ -71,6 +77,11 @@ public class TestDataInitializer implements CommandLineRunner {
         createAdmin("admin4@test.com", "Admin4",      "+201010000004",  KycStatus.APPROVED);
         createAdmin("admin5@test.com", " Admin5",    "+201010000005", KycStatus.APPROVED);
 
+        createTransactions(userRepository.findByEmail("user1@test.com").orElse(null), "merchant1@test.com");
+        createTransactions(userRepository.findByEmail("user2@test.com").orElse(null), "merchant2@test.com");
+        createTransactions(userRepository.findByEmail("user3@test.com").orElse(null), "user1@test.com");
+        createTransactions(userRepository.findByEmail("user4@test.com").orElse(null), "user2@test.com");
+        createTransactions(userRepository.findByEmail("user5@test.com").orElse(null), "user3@test.com");
 
         System.out.println("[TestDataInitializer] inserted 5 users and 5 merchants, all with wallets.");
         System.out.println("[TestDataInitializer] login with user1@test.com .. user5@test.com / " + PASSWORD);
@@ -114,5 +125,29 @@ public class TestDataInitializer implements CommandLineRunner {
         wallet.setCurrency(Currency.EGP);
         wallet.setStatus(WalletStatus.ACTIVE);
         walletRepository.save(wallet);
+    }
+
+    private void createAdmin(String email, String name,String phone, KycStatus status) {
+        User admin = new User();
+        admin.setEmail(email);
+        admin.setName(name);
+        admin.setPassword(passwordEncoder.encode("password123"));
+        admin.setPhoneNumber(phone);
+        admin.setRole(Role.ADMIN);
+        admin.setKycStatus(status);
+        userRepository.save(admin);
+    }
+
+    private void createTransactions(User  user , String receiverEmail){
+        Transaction transaction = new Transaction();
+        transaction.setSenderWallet(user.getWallet());
+        transaction.setReceiverWallet(userRepository.findByEmail(receiverEmail).map(User::getWallet).orElse(null));
+        transaction.setAmount(new BigDecimal("100.00"));
+        transaction.setType(TransactionType.TRANSFER);
+        transaction.setStatus(TransactionStatus.SUCCESS);
+        transaction.setReferenceId("TXN" + System.currentTimeMillis());
+        transaction.setCreatedAt(java.time.LocalDateTime.now());
+        transaction.setUpdatedAt(java.time.LocalDateTime.now());
+        transactionRepository.save(transaction);
     }
 }

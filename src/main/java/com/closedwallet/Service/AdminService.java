@@ -51,7 +51,7 @@ public class AdminService {
     public List<AdminUserResponse> getAllUsers() {
         List<AdminUserResponse> response = new ArrayList<>();
         for (User user : userRepository.findAll()) {
-            Wallet wallet = user.getWallet();
+            Wallet wallet = user.getUserWallet();
             AdminUserResponse item;
             if(user.getRole()== null){
                 continue;
@@ -73,23 +73,32 @@ public class AdminService {
         }
         return response;
     }
+public List<AdminWalletResponse> getAllWallets() {
 
-    public List<AdminWalletResponse> getAllWallets() {
-        List<AdminWalletResponse> response = new ArrayList<>();
-        for (Wallet wallet : walletRepository.findAll()) {
-            if (wallet.getUser() != null && wallet.getUser().getRole() == Role.USER) {
-                AdminWalletResponse item = new AdminWalletResponse();
-                item.setId(wallet.getId());
-                item.setBalance(wallet.getBalance());
-                item.setCurrency(wallet.getCurrency());
-                item.setStatus(wallet.getStatus());
-                item.setUserId(wallet.getUser().getId());
-                item.setMerchantId(wallet.getMerchant() != null ? wallet.getMerchant().getId() : null);
-                response.add(item);
-            }
+    List<AdminWalletResponse> response = new ArrayList<>();
+
+    for (Wallet wallet : walletRepository.findAll()) {
+
+        AdminWalletResponse item = new AdminWalletResponse();
+
+        item.setId(wallet.getId());
+        item.setBalance(wallet.getBalance());
+        item.setCurrency(wallet.getCurrency());
+        item.setStatus(wallet.getStatus());
+
+        if (wallet.getUser() != null) {
+            item.setUserId(wallet.getUser().getId());
         }
-        return response;
+
+        if (wallet.getMerchant() != null) {
+            item.setMerchantId(wallet.getMerchant().getId());
+        }
+
+        response.add(item);
     }
+
+    return response;
+}
 
     public List<AdminTransactionResponse> getAllTransactions() {
         List<AdminTransactionResponse> response = new ArrayList<>();
