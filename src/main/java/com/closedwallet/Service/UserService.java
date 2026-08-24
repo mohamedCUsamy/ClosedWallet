@@ -1,25 +1,34 @@
 package com.closedwallet.Service;
 
+
+
+import java.math.BigDecimal;
+import java.util.Objects;
+
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.closedwallet.Entity.User;
 import com.closedwallet.Entity.Wallet;
 import com.closedwallet.Exception.InvalidPassOrEmail;
 import com.closedwallet.Exception.UserExisitsException;
 import com.closedwallet.Repository.UserRepository;
 import com.closedwallet.Repository.WalletRepository;
-import com.closedwallet.dto.*;
+import com.closedwallet.dto.ChangePassRequest;
+import com.closedwallet.dto.ChangePassResponse;
+import com.closedwallet.dto.LoginRequest;
+import com.closedwallet.dto.LoginResponse;
+import com.closedwallet.dto.ProfileResponse;
+import com.closedwallet.dto.RegisterRequest;
+import com.closedwallet.dto.RegisterResponse;
+import com.closedwallet.dto.UpdateRequest;
+import com.closedwallet.dto.UpdateResponse;
+import com.closedwallet.dto.WalletResponse;
 import com.closedwallet.enums.Currency;
 import com.closedwallet.enums.KycStatus;
 import com.closedwallet.enums.Role;
 import com.closedwallet.enums.WalletStatus;
-import jakarta.validation.constraints.Null;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-
-import java.math.BigDecimal;
-import java.util.Optional;
-import java.util.Objects;
-
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class UserService {
