@@ -12,6 +12,4 @@ public class LoginResponse {
     private String responseMessage;
     private String responseDescription;
     private String token;
-    private Role role;
-
 }
