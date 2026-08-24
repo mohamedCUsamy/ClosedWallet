@@ -86,16 +86,7 @@ public class TestDataInitializer implements CommandLineRunner {
         System.out.println("[TestDataInitializer] inserted 5 users and 5 merchants, all with wallets.");
         System.out.println("[TestDataInitializer] login with user1@test.com .. user5@test.com / " + PASSWORD);
     }
-    private void createAdmin(String email, String name,String phone, KycStatus status) {
-        User admin = new User();
-        admin.setEmail(email);
-        admin.setName(name);
-        admin.setPassword(passwordEncoder.encode("password123"));
-        admin.setPhoneNumber(phone);
-        admin.setRole(Role.ADMIN);
-        admin.setKycStatus(status);
-        userRepository.save(admin);
-    }
+
     private void createUser(String email, String name, String phone, BigDecimal balance) {
         User user = new User(phone, name, passwordEncoder.encode(PASSWORD), email);
         user.setRole(Role.USER);
