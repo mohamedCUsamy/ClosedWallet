@@ -9,7 +9,6 @@ import com.closedwallet.enums.Role;
 @Getter
 public class LoginResponse {
     private String responseCode;
-    private Role role;
     private String responseMessage;
     private String responseDescription;
     private String token;

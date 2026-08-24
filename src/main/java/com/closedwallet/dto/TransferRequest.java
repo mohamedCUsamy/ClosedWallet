@@ -7,19 +7,12 @@ import jakarta.validation.constraints.Positive;
 
 
 public class TransferRequest {
-    private String receiverPhone;
+
     private String receiverEmail;
     @NotNull
     @Positive
     private BigDecimal amount;
 
-    public String getReceiverPhone() {
-        return receiverPhone;
-    }
-
-    public void setReceiverPhone(String receiverPhone) {
-        this.receiverPhone = receiverPhone;
-    }
 
     public String getReceiverEmail() {
         return receiverEmail;

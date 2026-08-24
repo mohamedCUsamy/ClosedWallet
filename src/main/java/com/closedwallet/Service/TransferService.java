@@ -50,11 +50,9 @@ public class TransferService {
         if (request.getReceiverEmail() != null && !request.getReceiverEmail().isBlank()) {
             receiver = userRepository.findByEmail(request.getReceiverEmail())
                     .orElseThrow(() -> new RuntimeException("Receiver not found"));
-        } else if (request.getReceiverPhone() != null && !request.getReceiverPhone().isBlank()) {
-            receiver = userRepository.findByPhoneNumber(request.getReceiverPhone())
-                    .orElseThrow(() -> new RuntimeException("Receiver not found"));
+
         } else {
-            throw new RuntimeException("Receiver email or phone is required");
+            throw new RuntimeException("Receiver email is required");
         }
 
         Wallet receiverWallet = receiver.getWallet();
@@ -98,7 +96,7 @@ public class TransferService {
                 .orElseThrow(() -> new RuntimeException("Wallet not found"));
 
         LocalDateTime now = LocalDateTime.now();
-        LocalDateTime weekAgo = now.minusDays(7);
+        LocalDateTime weekAgo = now.minusDays(6);
 
         List<Transaction> weeklyTransactions = transactionRepository.findByWalletAndDateRange(userWallet, weekAgo);
 
@@ -116,7 +114,7 @@ public class TransferService {
             }
 
             long daysDifference = ChronoUnit.DAYS.between(weekAgo, transaction.getCreatedAt());
-            int dayIndex = (int) daysDifference;
+            int dayIndex = (int) daysDifference+1;
 
             if (dayIndex >= 0 && dayIndex < 7) {
                 if (transaction.getSenderWallet().getId().equals(userWallet.getId())) {
