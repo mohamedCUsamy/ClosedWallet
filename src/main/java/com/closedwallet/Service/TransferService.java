@@ -148,7 +148,20 @@ public class TransferService {
         return response;
     }
     private TransactionsResponse mapToDTO(Transaction transaction) {
-
+        Wallet t = transaction.getReceiverWallet();
+        if(t.getUser() == null){
+            return new TransactionsResponse(
+                    transaction.getId(),
+                    transaction.getAmount(),
+                    transaction.getType(),
+                    transaction.getStatus(),
+                    transaction.getReferenceId(),
+                    transaction.getCreatedAt(),
+                    transaction.getSenderWallet().getUser().getName(),
+                    transaction.getReceiverWallet().getMerchant().getName(),
+                    transaction.getSenderWallet().getCurrency()
+            );
+        }
         return new TransactionsResponse(
                 transaction.getId(),
                 transaction.getAmount(),
