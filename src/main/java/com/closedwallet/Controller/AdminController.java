@@ -9,6 +9,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth/admin")
@@ -36,6 +37,36 @@ public class AdminController {
     @GetMapping("/transactions")
     public List<AdminTransactionResponse> getAllTransactions() {
         return adminService.getAllTransactions();
+    }
+
+    @GetMapping("/merchants")
+    public List<AdminMerchantResponse> getAllMerchants() {
+        return adminService.getAllMerchants();
+    }
+
+    @GetMapping("/users/count")
+    public long getUserCount() {
+        return adminService.getUserCount();
+    }
+
+    @GetMapping("/wallets/count")
+    public long getWalletCount() {
+        return adminService.getWalletCount();
+    }
+
+    @GetMapping("/transactions/count")
+    public long getTransactionCount() {
+        return adminService.getTransactionCount();
+    }
+
+    @GetMapping("/merchants/count")
+    public long getMerchantCount() {
+        return adminService.getMerchantCount();
+    }
+
+    @GetMapping("/stats")
+    public Map<String, Long> getStats() {
+        return adminService.getStats();
     }
 
     @PostMapping("/merchants")

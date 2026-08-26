@@ -24,7 +24,9 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -99,6 +101,53 @@ public List<AdminWalletResponse> getAllWallets() {
 
     return response;
 }
+
+    public List<AdminMerchantResponse> getAllMerchants() {
+        List<AdminMerchantResponse> response = new ArrayList<>();
+        for (Merchant merchant : merchantRepository.findAll()) {
+            AdminMerchantResponse item = new AdminMerchantResponse();
+            item.setId(merchant.getId());
+            item.setName(merchant.getName());
+            item.setEmail(merchant.getEmail());
+            item.setPhoneNumber(merchant.getPhone());
+            item.setCategory(merchant.getCategory());
+
+            Wallet wallet = merchant.getWallet();
+            if (wallet != null) {
+                item.setWalletId(wallet.getId());
+                item.setBalance(wallet.getBalance());
+                item.setWalletStatus(wallet.getStatus());
+            }
+
+            response.add(item);
+        }
+        return response;
+    }
+
+    public long getUserCount() {
+        return userRepository.count();
+    }
+
+    public long getWalletCount() {
+        return walletRepository.count();
+    }
+
+    public long getTransactionCount() {
+        return transactionRepository.count();
+    }
+
+    public long getMerchantCount() {
+        return merchantRepository.count();
+    }
+
+    public Map<String, Long> getStats() {
+        Map<String, Long> stats = new LinkedHashMap<>();
+        stats.put("users", userRepository.count());
+        stats.put("merchants", merchantRepository.count());
+        stats.put("wallets", walletRepository.count());
+        stats.put("transactions", transactionRepository.count());
+        return stats;
+    }
 
     public List<AdminTransactionResponse> getAllTransactions() {
         List<AdminTransactionResponse> response = new ArrayList<>();
