@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.closedwallet.Entity.User;
 import com.closedwallet.Entity.Wallet;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -95,10 +96,13 @@ public class TransferService {
         Wallet userWallet = walletRepository.findByUser(user)
                 .orElseThrow(() -> new RuntimeException("Wallet not found"));
 
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime weekAgo = now.minusDays(6);
+        LocalDate today = LocalDate.now();
+        LocalDate weekAgo = today.minusDays(6);
 
-        List<Transaction> weeklyTransactions = transactionRepository.findByWalletAndDateRange(userWallet, weekAgo);
+        List<Transaction> weeklyTransactions = transactionRepository.findByWalletAndDateRange(
+                userWallet,
+                weekAgo.atStartOfDay()
+        );
 
         List<BigDecimal> spending = new ArrayList<>();
         List<BigDecimal> income = new ArrayList<>();
@@ -113,8 +117,11 @@ public class TransferService {
                 continue;
             }
 
-            long daysDifference = ChronoUnit.DAYS.between(weekAgo, transaction.getCreatedAt());
-            int dayIndex = (int) daysDifference+1;
+            long daysDifference = ChronoUnit.DAYS.between(
+                    weekAgo,
+                    transaction.getCreatedAt().toLocalDate()
+            );
+            int dayIndex = (int) daysDifference;
 
             if (dayIndex >= 0 && dayIndex < 7) {
                 if (transaction.getSenderWallet().getId().equals(userWallet.getId())) {
