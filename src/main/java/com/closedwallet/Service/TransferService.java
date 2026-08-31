@@ -9,6 +9,7 @@ import com.closedwallet.dto.TransferResponse;
 import com.closedwallet.dto.WeeklySpendingResponse;
 import com.closedwallet.enums.TransactionStatus;
 import com.closedwallet.enums.TransactionType;
+import com.closedwallet.enums.WalletStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -65,6 +66,12 @@ public class TransferService {
         }
         if (senderWallet.getCurrency() != receiverWallet.getCurrency()) {
             throw new RuntimeException("Wallet currencies do not match");
+        }
+        if (senderWallet.getStatus() != WalletStatus.ACTIVE) {
+            throw new IllegalStateException("Sender wallet is " + senderWallet.getStatus() + " and cannot send money");
+        }
+        if (receiverWallet.getStatus() != WalletStatus.ACTIVE) {
+            throw new IllegalStateException("Receiver wallet is " + receiverWallet.getStatus() + " and cannot receive money");
         }
         if (request.getAmount() == null || request.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
             throw new RuntimeException("Amount must be greater than zero");

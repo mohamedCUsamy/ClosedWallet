@@ -17,6 +17,7 @@ import com.closedwallet.dto.PaymentRequest;
 import com.closedwallet.dto.PaymentResponse;
 import com.closedwallet.enums.TransactionStatus;
 import com.closedwallet.enums.TransactionType;
+import com.closedwallet.enums.WalletStatus;
 
 @Service
 public class PaymentService {
@@ -43,6 +44,13 @@ public class PaymentService {
 
 
         if((sender != null) && (receiver != null)){
+
+            if (sender.getUserWallet().getStatus() != WalletStatus.ACTIVE) {
+                throw new IllegalStateException("Wallet is " + sender.getUserWallet().getStatus() + " and cannot be used for payments");
+            }
+            if (receiver.getWallet().getStatus() != WalletStatus.ACTIVE) {
+                throw new IllegalStateException("Merchant wallet is " + receiver.getWallet().getStatus() + " and cannot receive payments");
+            }
 
             BigDecimal senderWalletBlance = sender.getUserWallet().getBalance();
             BigDecimal receiverWallet = receiver.getWallet().getBalance();

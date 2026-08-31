@@ -133,6 +133,9 @@ public class UserService {
             throw new IllegalArgumentException("Amount must be between 10 and 5000");
         }
         User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
+        if (user.getUserWallet().getStatus() != WalletStatus.ACTIVE) {
+            throw new IllegalStateException("Wallet is " + user.getUserWallet().getStatus() + " and cannot be topped up");
+        }
         user.getUserWallet().setBalance(user.getUserWallet().getBalance().add(amount));
         walletRepository.save(user.getUserWallet());
         return true;
