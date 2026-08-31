@@ -26,12 +26,14 @@ public class PaymentService {
     TransactionRepository transactionRepository;
     UserRepository userRepository;
     MerchantRepository merchantRepository;
+    private final FailedTransactionRecorder failedTransactionRecorder;
 
-    PaymentService(TransactionRepository transactionRepository, UserRepository userRepository, MerchantRepository merchantRepository, WalletRepository walletRepository) {
+    PaymentService(TransactionRepository transactionRepository, UserRepository userRepository, MerchantRepository merchantRepository, WalletRepository walletRepository, FailedTransactionRecorder failedTransactionRecorder) {
         this.transactionRepository = transactionRepository;
         this.userRepository = userRepository;
         this.merchantRepository = merchantRepository;
         this.walletRepository = walletRepository;
+        this.failedTransactionRecorder = failedTransactionRecorder;
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -40,53 +42,64 @@ public class PaymentService {
         User sender = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
         Merchant receiver = merchantRepository.findById(paymentRequest.getMerchantId()).orElseThrow(() -> new RuntimeException("Merchant not found"));
         BigDecimal amount = paymentRequest.getAmount();
-        
 
+        try {
 
-        if((sender != null) && (receiver != null)){
+            if((sender != null) && (receiver != null)){
 
-            if (sender.getUserWallet().getStatus() != WalletStatus.ACTIVE) {
-                throw new IllegalStateException("Wallet is " + sender.getUserWallet().getStatus() + " and cannot be used for payments");
-            }
-            if (receiver.getWallet().getStatus() != WalletStatus.ACTIVE) {
-                throw new IllegalStateException("Merchant wallet is " + receiver.getWallet().getStatus() + " and cannot receive payments");
-            }
+                if (sender.getUserWallet().getStatus() != WalletStatus.ACTIVE) {
+                    throw new IllegalStateException("Wallet is " + sender.getUserWallet().getStatus() + " and cannot be used for payments");
+                }
+                if (receiver.getWallet().getStatus() != WalletStatus.ACTIVE) {
+                    throw new IllegalStateException("Merchant wallet is " + receiver.getWallet().getStatus() + " and cannot receive payments");
+                }
 
-            BigDecimal senderWalletBlance = sender.getUserWallet().getBalance();
-            BigDecimal receiverWallet = receiver.getWallet().getBalance();
+                BigDecimal senderWalletBlance = sender.getUserWallet().getBalance();
+                BigDecimal receiverWallet = receiver.getWallet().getBalance();
 
-            if(senderWalletBlance.compareTo(amount) >= 0){
+                if(senderWalletBlance.compareTo(amount) >= 0){
 
                 
-                sender.getUserWallet().setBalance(senderWalletBlance.subtract(amount));
-                receiver.getWallet().setBalance(receiverWallet.add(amount));
+                    sender.getUserWallet().setBalance(senderWalletBlance.subtract(amount));
+                    receiver.getWallet().setBalance(receiverWallet.add(amount));
 
-                Transaction transaction = new Transaction();
-                transaction.setSenderWallet(sender.getUserWallet());
-                transaction.setReceiverWallet(receiver.getWallet());
-                transaction.setAmount(amount);
-                transaction.setType(TransactionType.PAYMENT);
-                transaction.setReferenceId(UUID.randomUUID().toString());
-                transaction.setStatus(TransactionStatus.SUCCESS);
-                transactionRepository.save(transaction);
+                    Transaction transaction = new Transaction();
+                    transaction.setSenderWallet(sender.getUserWallet());
+                    transaction.setReceiverWallet(receiver.getWallet());
+                    transaction.setAmount(amount);
+                    transaction.setType(TransactionType.PAYMENT);
+                    transaction.setReferenceId(UUID.randomUUID().toString());
+                    transaction.setStatus(TransactionStatus.SUCCESS);
+                    transactionRepository.save(transaction);
 
-                walletRepository.save(sender.getUserWallet());
-                walletRepository.save(receiver.getWallet());
+                    walletRepository.save(sender.getUserWallet());
+                    walletRepository.save(receiver.getWallet());
 
-                response.setStatus(TransactionStatus.SUCCESS);
-                response.setReferenceId(transaction.getReferenceId());
-                response.setSenderBalance(sender.getUserWallet().getBalance());
-                response.setReceiverBalance(receiver.getWallet().getBalance());
+                    response.setStatus(TransactionStatus.SUCCESS);
+                    response.setReferenceId(transaction.getReferenceId());
+                    response.setSenderBalance(sender.getUserWallet().getBalance());
+                    response.setReceiverBalance(receiver.getWallet().getBalance());
 
-            } else {
-                response.setStatus(TransactionStatus.FAILED);
-                throw new RuntimeException("Insufficient balance");
-            }
+                } else {
+                    response.setStatus(TransactionStatus.FAILED);
+                    throw new RuntimeException("Insufficient balance");
+                }
             
-        }
-        else{
-            response.setStatus(TransactionStatus.FAILED);
-            throw new RuntimeException("Sender or receiver not found");
+            }
+            else{
+                response.setStatus(TransactionStatus.FAILED);
+                throw new RuntimeException("Sender or receiver not found");
+            }
+
+        } catch (RuntimeException e) {
+            // Recorded in its own transaction so the row survives this rollback.
+            failedTransactionRecorder.record(
+                    sender.getUserWallet() == null ? null : sender.getUserWallet().getId(),
+                    receiver.getWallet() == null ? null : receiver.getWallet().getId(),
+                    amount,
+                    TransactionType.PAYMENT,
+                    e.getMessage());
+            throw e;
         }
         return response;
     }

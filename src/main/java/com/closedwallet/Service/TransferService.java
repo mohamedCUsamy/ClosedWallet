@@ -31,15 +31,18 @@ public class TransferService {
     private final UserRepository userRepository;
     private final WalletRepository walletRepository;
     private final TransactionRepository transactionRepository;
+    private final FailedTransactionRecorder failedTransactionRecorder;
 
     public TransferService(
             UserRepository userRepository,
             WalletRepository walletRepository,
-            TransactionRepository transactionRepository) {
+            TransactionRepository transactionRepository,
+            FailedTransactionRecorder failedTransactionRecorder) {
 
         this.userRepository = userRepository;
         this.walletRepository = walletRepository;
         this.transactionRepository = transactionRepository;
+        this.failedTransactionRecorder = failedTransactionRecorder;
     }
 
     @Transactional
@@ -48,53 +51,68 @@ public class TransferService {
                 .orElseThrow(() -> new UsernameNotFoundException("Sender not found"));
         Wallet senderWallet = sender.getWallet();
         User receiver;
+        Long receiverWalletId = null;
 
-        if (request.getReceiverEmail() != null && !request.getReceiverEmail().isBlank()) {
-            receiver = userRepository.findByEmail(request.getReceiverEmail())
-                    .orElseThrow(() -> new RuntimeException("Receiver not found"));
+        try {
 
-        } else {
-            throw new RuntimeException("Receiver email is required");
-        }
+            if (request.getReceiverEmail() != null && !request.getReceiverEmail().isBlank()) {
+                receiver = userRepository.findByEmail(request.getReceiverEmail())
+                        .orElseThrow(() -> new RuntimeException("Receiver not found"));
 
-        Wallet receiverWallet = receiver.getWallet();
-        if (receiverWallet == null) {
-            throw new RuntimeException("Receiver wallet not found");
-        }
-        if (senderWallet.getId().equals(receiverWallet.getId())) {
-            throw new RuntimeException("Cannot transfer money to your own wallet");
-        }
-        if (senderWallet.getCurrency() != receiverWallet.getCurrency()) {
-            throw new RuntimeException("Wallet currencies do not match");
-        }
-        if (senderWallet.getStatus() != WalletStatus.ACTIVE) {
-            throw new IllegalStateException("Sender wallet is " + senderWallet.getStatus() + " and cannot send money");
-        }
-        if (receiverWallet.getStatus() != WalletStatus.ACTIVE) {
-            throw new IllegalStateException("Receiver wallet is " + receiverWallet.getStatus() + " and cannot receive money");
-        }
-        if (request.getAmount() == null || request.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
-            throw new RuntimeException("Amount must be greater than zero");
-        }
-        if (senderWallet.getBalance().compareTo(request.getAmount()) < 0) {
-            throw new RuntimeException("Insufficient balance");
-        }
+            } else {
+                throw new RuntimeException("Receiver email is required");
+            }
 
-        senderWallet.setBalance(senderWallet.getBalance().subtract(request.getAmount()));
-        receiverWallet.setBalance(receiverWallet.getBalance().add(request.getAmount()));
-        walletRepository.save(senderWallet);
-        walletRepository.save(receiverWallet);
+            Wallet receiverWallet = receiver.getWallet();
+            if (receiverWallet == null) {
+                throw new RuntimeException("Receiver wallet not found");
+            }
+            receiverWalletId = receiverWallet.getId();
+            if (senderWallet.getId().equals(receiverWallet.getId())) {
+                throw new RuntimeException("Cannot transfer money to your own wallet");
+            }
+            if (senderWallet.getCurrency() != receiverWallet.getCurrency()) {
+                throw new RuntimeException("Wallet currencies do not match");
+            }
+            if (senderWallet.getStatus() != WalletStatus.ACTIVE) {
+                throw new IllegalStateException("Sender wallet is " + senderWallet.getStatus() + " and cannot send money");
+            }
+            if (receiverWallet.getStatus() != WalletStatus.ACTIVE) {
+                throw new IllegalStateException("Receiver wallet is " + receiverWallet.getStatus() + " and cannot receive money");
+            }
+            if (request.getAmount() == null || request.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
+                throw new RuntimeException("Amount must be greater than zero");
+            }
+            if (senderWallet.getBalance().compareTo(request.getAmount()) < 0) {
+                throw new RuntimeException("Insufficient balance");
+            }
 
-        Transaction transaction = new Transaction();
-        transaction.setSenderWallet(senderWallet);
-        transaction.setReceiverWallet(receiverWallet);
-        transaction.setAmount(request.getAmount());
-        transaction.setType(TransactionType.TRANSFER);
-        transaction.setStatus(TransactionStatus.SUCCESS);
-        transaction.setReferenceId(UUID.randomUUID().toString());
-        Transaction saved = transactionRepository.save(transaction);
+            senderWallet.setBalance(senderWallet.getBalance().subtract(request.getAmount()));
+            receiverWallet.setBalance(receiverWallet.getBalance().add(request.getAmount()));
+            walletRepository.save(senderWallet);
+            walletRepository.save(receiverWallet);
 
-        return new TransferResponse("Transfer successful", saved.getSenderWallet().getId(), saved.getAmount());
+            Transaction transaction = new Transaction();
+            transaction.setSenderWallet(senderWallet);
+            transaction.setReceiverWallet(receiverWallet);
+            transaction.setAmount(request.getAmount());
+            transaction.setType(TransactionType.TRANSFER);
+            transaction.setStatus(TransactionStatus.SUCCESS);
+            transaction.setReferenceId(UUID.randomUUID().toString());
+            Transaction saved = transactionRepository.save(transaction);
+
+            return new TransferResponse("Transfer successful", saved.getSenderWallet().getId(), saved.getAmount());
+
+        } catch (RuntimeException e) {
+            // Recorded in its own transaction so the row survives this rollback.
+            failedTransactionRecorder.record(
+                    senderWallet == null ? null : senderWallet.getId(),
+                    receiverWalletId,
+                    request.getAmount(),
+                    TransactionType.TRANSFER,
+                    e.getMessage());
+            throw e;
+        }
     }
 
     public WeeklySpendingResponse getWeeklySpending(Authentication authentication) {

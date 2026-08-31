@@ -58,18 +58,20 @@ public class AdminService {
             if(user.getRole()== null){
                 continue;
             }
-            if((user.getRole() == Role.USER) && wallet != null){
-                item = new AdminUserResponse();
-                item.setId(user.getId());
-                item.setName(user.getName());
-                item.setEmail(user.getEmail());
-                item.setPhoneNumber(user.getPhoneNumber());
-                item.setRole(user.getRole());
+            // Admins are returned too so the frontend can filter by role.
+            // They have no wallet, so the wallet fields stay null for them.
+            item = new AdminUserResponse();
+            item.setId(user.getId());
+            item.setName(user.getName());
+            item.setEmail(user.getEmail());
+            item.setPhoneNumber(user.getPhoneNumber());
+            item.setRole(user.getRole());
+            if (wallet != null) {
                 item.setWalletId(wallet.getId());
                 item.setBalance(wallet.getBalance());
                 item.setWalletStatus(wallet.getStatus());
-                response.add(item);
             }
+            response.add(item);
 
 
         }

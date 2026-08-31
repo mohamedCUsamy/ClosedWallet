@@ -28,6 +28,8 @@ public class Transaction {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private String referenceId;
+    @Column(length = 500)
+    private String failureReason;
     @PrePersist
     protected void onCreate() {
         if (createdAt == null) {
@@ -108,6 +110,14 @@ public class Transaction {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public String getFailureReason() {
+        return failureReason;
+    }
+
+    public void setFailureReason(String failureReason) {
+        this.failureReason = failureReason;
     }
 
     public String getReferenceId() {
