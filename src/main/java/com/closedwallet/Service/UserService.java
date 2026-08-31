@@ -32,6 +32,8 @@ import com.closedwallet.enums.WalletStatus;
 
 @Service
 public class UserService {
+    private static final BigDecimal MIN_TOPUP = new BigDecimal("10.00");
+    private static final BigDecimal MAX_TOPUP = new BigDecimal("5000.00");
     private final UserRepository userRepository;
     private final WalletRepository walletRepository;
     private final PasswordEncoder passwordEncoder;
@@ -127,7 +129,9 @@ public class UserService {
 
     @Transactional(rollbackFor = Exception.class)
     public boolean topUpWallet(BigDecimal amount,String email) {
-
+        if(amount == null || amount.compareTo(MIN_TOPUP) < 0 || amount.compareTo(MAX_TOPUP) > 0) {
+            throw new IllegalArgumentException("Amount must be between 10 and 5000");
+        }
         User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
         user.getUserWallet().setBalance(user.getUserWallet().getBalance().add(amount));
         walletRepository.save(user.getUserWallet());

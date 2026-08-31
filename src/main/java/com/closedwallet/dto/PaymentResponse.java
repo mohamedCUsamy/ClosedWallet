@@ -12,6 +12,7 @@ public class PaymentResponse {
     TransactionStatus Status;
     BigDecimal senderBalance;
     BigDecimal receiverBalance;
+    String referenceId;
 
     public PaymentResponse() {
         senderBalance = BigDecimal.ZERO;
@@ -32,6 +33,14 @@ public class PaymentResponse {
 
     public void setReceiverBalance(BigDecimal receiverBalance) {
         this.receiverBalance = receiverBalance;
+    }
+
+    public String getReferenceId() {
+        return referenceId;
+    }
+
+    public void setReferenceId(String referenceId) {
+        this.referenceId = referenceId;
     }
 
     public TransactionStatus getStatus() {

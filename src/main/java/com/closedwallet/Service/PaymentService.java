@@ -1,6 +1,7 @@
 package com.closedwallet.Service;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,6 +16,7 @@ import com.closedwallet.Repository.WalletRepository;
 import com.closedwallet.dto.PaymentRequest;
 import com.closedwallet.dto.PaymentResponse;
 import com.closedwallet.enums.TransactionStatus;
+import com.closedwallet.enums.TransactionType;
 
 @Service
 public class PaymentService {
@@ -55,6 +57,8 @@ public class PaymentService {
                 transaction.setSenderWallet(sender.getUserWallet());
                 transaction.setReceiverWallet(receiver.getWallet());
                 transaction.setAmount(amount);
+                transaction.setType(TransactionType.PAYMENT);
+                transaction.setReferenceId(UUID.randomUUID().toString());
                 transaction.setStatus(TransactionStatus.SUCCESS);
                 transactionRepository.save(transaction);
 
@@ -62,6 +66,7 @@ public class PaymentService {
                 walletRepository.save(receiver.getWallet());
 
                 response.setStatus(TransactionStatus.SUCCESS);
+                response.setReferenceId(transaction.getReferenceId());
                 response.setSenderBalance(sender.getUserWallet().getBalance());
                 response.setReceiverBalance(receiver.getWallet().getBalance());
 
